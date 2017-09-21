@@ -279,6 +279,35 @@ void main() {
 precision highp float;
 
 uniform vec4 color;
+uniform sampler2D tex;
+varying vec2 texCoordFrag;
+varying vec4 instanceColorFrag;
+
+void main() {
+	gl_FragColor = color * instanceColorFrag * texture2D(tex, texCoordFrag);
+}
+#version 100
+
+precision highp float;
+
+attribute vec2 position;
+attribute vec2 texCoord;
+attribute vec2 instanceOffset;
+attribute vec4 instanceColor;
+uniform mat4 projection;
+varying vec2 texCoordFrag;
+varying vec4 instanceColorFrag;
+
+void main() {
+	gl_Position = projection * vec4(position + instanceOffset, 1.0, 1.0);
+	texCoordFrag = texCoord;
+	instanceColorFrag = instanceColor;
+}
+#version 100
+
+precision highp float;
+
+uniform vec4 color;
 
 void main() {
 	gl_FragColor = color;
@@ -1761,4 +1790,10 @@ Iª¦ ˜@EğX5¥Š}xyr+s<Ë^5yİZ H¹Õ>İËâ´yj@á%Æ„hˆçÌQ¼†{8–Â—D ¹€Æ Ó}/.:]Wóª
 & Ìçv½ŸÔñ‹‹‹²EàG ç_°°° [ü’Ëd‡˜sNNNŠ©©)yN©Û`ä `¶ÙjÙÌã_^$233#&&&ä8Î‰Dz ŒÀÉ›76 Lb”æœŸXucğú§×=æ!&7êàs U‡gã×$šégPıÙŠÆ±/™Ô¸‚ÏÃ³™àX'- |˜*&3îàsİòÒÉG …;Ôó/|>Ls;@:10€›››i
 ¿º‘:}nb¸å£}ğAø×òşş^ÜŞŞŠëëk_U8ó¹»»“9#w'0gôğğğ 'ú‚ Üb 
  Œ¯5<WÀ×Ïv†g $ë¦AÂËØçä5¾É
-Ğ‰€Ù6B fØ˜m`#`¶€Ù6B fĞâ?•½®Ok"<    IEND®B`‚
+Ğ‰€Ù6B fØ˜m`#`¶€Ù6B fĞâ?•½®Ok"<    IEND®B`‚‰PNG
+
+   IHDR          ¡YD   gAMA  ±üa   	pHYs  Ã  ÃÇo¨d   tEXtSoftware paint.net 4.0.173nŸc  ÔIDATHKÅ•=hSa†cƒ¨Õ]p±“£›âäæ ."¸ˆLIHJI Ú¦4iÒ6işhşšŸ¡$B¡&…)1-(¡M–"iA*té¢£¢ôø^¹½ù’¶©Öá¹Ü{îıÎ{Îûı\Á`ø¯Hƒç‰4ø¸ n‚^ULŠ4x†‡‡oOLL”B¡ÍÌÌìáù9â×µß)Hƒ] :[˜ı™N§I!•J‘ÇãÙÃ;¾éQyè‹ÅÒ755U	‡ÃDep!pd×n·‡1îš2¾%á)¸ët:ß@ø»L°\ˆÏçû†Â-œG–¸úÁÁÁûèøC"‘
+t"™LR  ¿ßO˜*B¾«2‘vÜq8oãñ¸4y'x3ì ÇNZ@:~†k\½6ñq°0ìbŠ°\8@ş^™(£·Ùl±zësssG„X,F“““$[˜ÜÄwGFFx{¶®«Õúƒ7»é8‰Ûí–
+³ÓÓÓáè+è\Rô´ÜÿÁ‹„»Ğ&iG4«ğ/Lá{ä¾§Ñh·xÎ¼^¯X0Ø·"¹6©¿k÷;ˆ\ŸÍfóSÆÔztß¿´´DÍf“ÖÖÖø£`0(ºSO	»Ã…²åjQæpŸ…Õ/‘³åäÓÂ—‹°èq>Ÿ·¾¾.:*
+”Ëå¨ÑhPµZ‚.—K‚s^j5Ÿ˜ã/X¼ıZ‘NèFGG_p×õzVWWiee…¶¶¶h~~ŠÅ"•J%Z\\Â\¨fgkšL&>Ù®hƒ/&şsqÇÜy¹\¦Z^^mooÜÂpŠx[ò÷Ü1¦h‹íÔ-|áƒk```Ÿç»R©P6›¥ªÕj”Édğ>û÷yq²0\û„íÊÛ‰ÿ‚-IOƒú¡¼F!l+ì®Æê÷CCCIÄáşÌÂ
+² ‹šÀeUìŸ!İo—GìÈ Sc    IEND®B`‚
