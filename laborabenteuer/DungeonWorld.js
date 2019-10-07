@@ -127,6 +127,11 @@
       return $receiver.loadImage_3o09ro$(location, callback), Unit;
     }.bind(null, this.loader_0)));
   };
+  Assets.prototype.loadSound_puj7f4$ = function (key, location) {
+    return this.load_0(key, location, getCallableRef('loadSound', function ($receiver, location, callback) {
+      return $receiver.loadSound_5cnwnn$(location, callback), Unit;
+    }.bind(null, this.loader_0)));
+  };
   Assets.prototype.loadText_puj7f4$ = function (key, location) {
     return this.load_0(key, location, getCallableRef('loadText', function ($receiver, location, callback) {
       return $receiver.loadText_hyc7mn$(location, callback), Unit;
@@ -709,6 +714,7 @@
     this.moneyLabel_2ld2yw$_0 = this.moneyLabel_2ld2yw$_0;
     this.winLabel_ujeg2s$_0 = this.winLabel_ujeg2s$_0;
     this.playButton_tnenme$_0 = this.playButton_tnenme$_0;
+    this.triggerSound_brv7jv$_0 = this.triggerSound_brv7jv$_0;
   }
   Object.defineProperty(SlotGame.prototype, 'maskTexture_0', {
     get: function () {
@@ -790,18 +796,39 @@
       this.playButton_tnenme$_0 = playButton;
     }
   });
+  Object.defineProperty(SlotGame.prototype, 'triggerSound_0', {
+    get: function () {
+      if (this.triggerSound_brv7jv$_0 == null)
+        return throwUPAE('triggerSound');
+      return this.triggerSound_brv7jv$_0;
+    },
+    set: function (triggerSound) {
+      this.triggerSound_brv7jv$_0 = triggerSound;
+    }
+  });
   SlotGame.prototype.onInit = function () {
     this.assets.loadImage_puj7f4$('spriteMask', 'demo_slot/mask.png');
     this.assets.loadImage_puj7f4$('spriteSymbols', 'demo_slot/symbols.png');
     this.assets.loadImage_puj7f4$('spriteBackground', 'demo_slot/background.png');
+    this.assets.loadSound_puj7f4$('soundTrigger', 'demo_slot/trigger.mp3');
     this.screen.title = 'Laborabenteuer';
     this.screen.width = 768;
     this.screen.height = 512;
   };
+  function SlotGame$onStart$lambda(this$SlotGame) {
+    return function () {
+      if (!this$SlotGame.machine_0.running) {
+        this$SlotGame.triggerSound_0.play();
+      }
+      this$SlotGame.machine_0.spin();
+      return Unit;
+    };
+  }
   SlotGame.prototype.onStart = function () {
     this.maskTexture_0 = this.assets.createTexture_61zpoe$('spriteMask');
     this.symbolTexture_0 = this.assets.createTexture_61zpoe$('spriteSymbols');
     this.backgroundTexture_0 = this.assets.createTexture_61zpoe$('spriteBackground');
+    this.triggerSound_0 = this.assets.get_3zqiyt$('soundTrigger');
     Symbols_getInstance().kebab = this.symbolTexture_0.create_7b5o5w$(0.0, 0.0, 96.0, 96.0);
     Symbols_getInstance().esp = this.symbolTexture_0.create_7b5o5w$(96.0, 0.0, 96.0, 96.0);
     Symbols_getInstance().mouse = this.symbolTexture_0.create_7b5o5w$(192.0, 0.0, 96.0, 96.0);
@@ -815,9 +842,7 @@
     this.overlay_0 = new Frame(container, this.screen.width, this.screen.height, Style$Companion_getInstance().OVERLAY);
     this.moneyLabel_0 = container.add_6p229r$(new Label('Geld: ' + this.machine_0.money + '$'), 140.0, 408.0);
     this.winLabel_0 = container.add_6p229r$(new Label('Letzter Gewinn: ' + this.machine_0.win + '$'), 140.0, 388.0);
-    this.playButton_0 = container.add_6p229r$(new Button('Arbeiten', getCallableRef('spin', function ($receiver) {
-      return $receiver.spin(), Unit;
-    }.bind(null, this.machine_0))), 520.0, 392.0);
+    this.playButton_0 = container.add_6p229r$(new Button('Arbeiten', SlotGame$onStart$lambda(this)), 520.0, 392.0);
     this.playButton_0.tooltip = 'Hier klicken';
     this.overlay_0.enable_msja8c$(this);
   };
@@ -826,6 +851,9 @@
     this.overlay_0.tick_6taknv$(slow);
     this.moneyLabel_0.value = 'Geld: ' + this.machine_0.money + '$';
     this.winLabel_0.value = this.machine_0.running ? 'Die Maus gl\xFCht!' : 'Letzter Gewinn: ' + this.machine_0.win + '$';
+    if (!this.machine_0.running) {
+      this.triggerSound_0.stop();
+    }
   };
   function SlotGame$onDraw$lambda(this$SlotGame) {
     return function ($receiver) {
@@ -853,6 +881,9 @@
   };
   SlotGame.prototype.keyPress_ysv3wg$ = function (key) {
     if (key === Key$SPACE_getInstance()) {
+      if (!this.machine_0.running) {
+        this.triggerSound_0.play();
+      }
       this.machine_0.spin();
     }
     return false;
@@ -4537,10 +4568,49 @@
     simpleName: 'Music',
     interfaces: [Disposable]
   };
-  function Sound() {
+  function Sound(buffer) {
+    this.buffer_0 = buffer;
+    this.audioBuffer_0 = null;
+    this.active_0 = ArrayList_init();
+  }
+  function Sound$play$lambda(this$Sound) {
+    return function (it) {
+      this$Sound.audioBuffer_0 = it;
+      return Unit;
+    };
+  }
+  function Sound$play$lambda_0(this$Sound, closure$instance) {
+    return function (it) {
+      var $receiver = this$Sound.active_0;
+      var element = closure$instance;
+      $receiver.remove_11rb$(element);
+      return Unit;
+    };
   }
   Sound.prototype.play = function () {
+    var ctx = SoundSystem_getInstance().context;
+    if (this.audioBuffer_0 == null) {
+      ctx.decodeAudioData(this.buffer_0).then(Sound$play$lambda(this));
+    }
+     else {
+      var source = ctx.createBufferSource();
+      source.buffer = this.audioBuffer_0;
+      source.connect(ctx.destination);
+      var instance = new Sound$InstanceImpl(source);
+      this.active_0.add_11rb$(instance);
+      source.onended = Sound$play$lambda_0(this, instance);
+      source.start();
+      return instance;
+    }
     return null;
+  };
+  Sound.prototype.stop = function () {
+    var tmp$;
+    tmp$ = this.active_0.iterator();
+    while (tmp$.hasNext()) {
+      var element = tmp$.next();
+      element.source.stop();
+    }
   };
   Sound.prototype.dispose = function () {
   };
@@ -4551,11 +4621,53 @@
     simpleName: 'Instance',
     interfaces: []
   };
+  function Sound$InstanceImpl(source) {
+    this.source_5mqg1k$_0 = source;
+  }
+  Object.defineProperty(Sound$InstanceImpl.prototype, 'source', {
+    get: function () {
+      return this.source_5mqg1k$_0;
+    }
+  });
+  Sound$InstanceImpl.$metadata$ = {
+    kind: Kind_CLASS,
+    simpleName: 'InstanceImpl',
+    interfaces: [Sound$Instance]
+  };
   Sound.$metadata$ = {
     kind: Kind_CLASS,
     simpleName: 'Sound',
     interfaces: [Disposable]
   };
+  function SoundSystem() {
+    SoundSystem_instance = this;
+    this.context_qc6kpe$_0 = this.context_qc6kpe$_0;
+  }
+  Object.defineProperty(SoundSystem.prototype, 'context', {
+    get: function () {
+      if (this.context_qc6kpe$_0 == null)
+        return throwUPAE('context');
+      return this.context_qc6kpe$_0;
+    },
+    set: function (context) {
+      this.context_qc6kpe$_0 = context;
+    }
+  });
+  SoundSystem.prototype.init = function () {
+    this.context = new AudioContext();
+  };
+  SoundSystem.$metadata$ = {
+    kind: Kind_OBJECT,
+    simpleName: 'SoundSystem',
+    interfaces: []
+  };
+  var SoundSystem_instance = null;
+  function SoundSystem_getInstance() {
+    if (SoundSystem_instance === null) {
+      new SoundSystem();
+    }
+    return SoundSystem_instance;
+  }
   function Screen(game) {
     this.game_0 = game;
     this.frameCallback_0 = null;
@@ -4564,6 +4676,8 @@
     var tmp$, tmp$_0;
     this.canvas_0 = Kotlin.isType(tmp$ = document.getElementById('screen'), HTMLCanvasElement) ? tmp$ : throwCCE();
     this.glContext_8be2vx$ = Kotlin.isType(tmp$_0 = this.canvas_0.getContext('webgl'), WebGLRenderingContext) ? tmp$_0 : throwCCE();
+    SoundSystem_getInstance().init();
+    window.addEventListener('click', Screen_init$lambda);
   }
   Object.defineProperty(Screen.prototype, 'title', {
     get: function () {
@@ -4591,7 +4705,7 @@
   });
   Screen.prototype.loop_s2x38j$ = function (callback) {
     MouseHandler_getInstance().install_ucpmpf$(this.canvas_0, this.game_0.inputQueue);
-    KeyboardHandler_getInstance().install_ucpmpf$(this.canvas_0, this.game_0.inputQueue);
+    KeyboardHandler_getInstance().install_56nkm5$(this.game_0.inputQueue);
     this.frameCallback_0 = callback;
     window.requestAnimationFrame(getCallableRef('frame', function ($receiver, elapsed) {
       return $receiver.frame_0(elapsed), Unit;
@@ -4614,6 +4728,14 @@
       }.bind(null, this)));
     }
   };
+  function Screen_init$lambda(it) {
+    if (!Kotlin.isType(it, MouseEvent)) {
+      var message = 'Check failed.';
+      throw IllegalStateException_init(message.toString());
+    }
+    SoundSystem_getInstance().context.resume();
+    return Unit;
+  }
   Screen.$metadata$ = {
     kind: Kind_CLASS,
     simpleName: 'Screen',
@@ -4898,7 +5020,7 @@
       return Unit;
     };
   }
-  KeyboardHandler.prototype.install_ucpmpf$ = function (canvas, inputQueue) {
+  KeyboardHandler.prototype.install_56nkm5$ = function (inputQueue) {
     window.addEventListener('keydown', KeyboardHandler$install$lambda(inputQueue));
     window.addEventListener('keyup', KeyboardHandler$install$lambda_0(inputQueue));
   };
@@ -5056,7 +5178,18 @@
   };
   AssetLoader.prototype.loadMusic_xrfp2h$ = function (location, callback) {
   };
+  function AssetLoader$loadSound$lambda(it) {
+    return it.arrayBuffer();
+  }
+  function AssetLoader$loadSound$lambda_0(closure$callback) {
+    return function (it) {
+      var sound = new Sound(it);
+      closure$callback(sound);
+      return Unit;
+    };
+  }
   AssetLoader.prototype.loadSound_5cnwnn$ = function (location, callback) {
+    window.fetch(location).then(AssetLoader$loadSound$lambda).then(AssetLoader$loadSound$lambda_0(callback));
   };
   function AssetLoader$loadText$lambda(it) {
     return it.text();
@@ -5359,6 +5492,9 @@
   package$audio.Music = Music;
   Sound.Instance = Sound$Instance;
   package$audio.Sound = Sound;
+  Object.defineProperty(package$audio, 'SoundSystem', {
+    get: SoundSystem_getInstance
+  });
   package$base.Screen = Screen;
   package$gl.GLBuffer = GLBuffer;
   package$gl.GLMethod = GLMethod;
